@@ -1,9 +1,9 @@
 class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
-  version "0.0.0" # placeholder; release workflow will update
+  version "main"
   url "https://github.com/trvon/yams/archive/refs/tags/v#{version}.tar.gz"
-  sha256 "SHA256_PLACEHOLDER" # replaced in release workflow
+  sha256 "c0bcc95e3b13f375a258c921eed654f1a94f87fdadad53a8ba51f2984dfc7482"
   license "MIT"
   head "https://github.com/trvon/yams.git", branch: "main"
 
@@ -25,8 +25,6 @@ class Yams < Formula
 
   def install
     ENV.cxx20
-
-    # Set OpenSSL path for macOS
     if OS.mac?
       ENV["OPENSSL_ROOT_DIR"] = Formula["openssl@3"].opt_prefix
     end
@@ -43,7 +41,6 @@ class Yams < Formula
     system "cmake", "--build", "build", "--parallel"
     system "cmake", "--install", "build"
 
-    # Install shell completions if the binary supports them
     if (bin/"yams").exist?
       generate_completions_from_executable(bin/"yams", "completion")
     end
@@ -64,10 +61,7 @@ class Yams < Formula
   end
 
   test do
-    # Test that the binary was installed and can show version
     assert_match version.to_s, shell_output("#{bin}/yams --version")
-    
-    # Test basic functionality - init in a temp directory
     system "#{bin}/yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
     assert_predicate testpath/"yams-test/yams.db", :exist?
     assert_predicate testpath/".config/yams/config.toml", :exist?
