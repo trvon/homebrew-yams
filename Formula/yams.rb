@@ -1,9 +1,9 @@
 class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
-  version "0.0.0" # placeholder; release workflow will update
+  version "0.7.7"
   url "https://github.com/trvon/yams/archive/refs/tags/v#{version}.tar.gz"
-  sha256 "SHA256_PLACEHOLDER" # replaced in release workflow
+  sha256 "4d97a42a394ed86c1216c313e7531af6701f0f1726a6a46e42636ade1ee5cbf7"
   license "GPL-3.0-or-later"
   head "https://github.com/trvon/yams.git", branch: "main"
 
