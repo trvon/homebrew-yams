@@ -2,51 +2,28 @@ class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
   version "0.7.7"
-  url "https://github.com/trvon/yams/archive/refs/tags/v#{version}.tar.gz"
-  sha256 "4d97a42a394ed86c1216c313e7531af6701f0f1726a6a46e42636ade1ee5cbf7"
   license "GPL-3.0-or-later"
-  head "https://github.com/trvon/yams.git", branch: "main"
 
-  depends_on "cmake" => :build
-  depends_on "openssl@3"
-  depends_on "protobuf"
-  depends_on "sqlite"
-  depends_on "boost"
-  depends_on macos: :monterey
+  on_arm do
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-#{version}-macos-arm64.zip"
+    sha256 "98bebc3c528e5bd7b72a57adec53134f7083fc3a2aab99ee0940b05a80236076"
+  end
 
-  on_linux do
-    depends_on "gcc@11" if ENV.compiler == :clang
+  on_intel do
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-#{version}-macos-x86_64.zip"
+    sha256 "28436124264030c3ee1d997b72afaa19104f594dc461a2b5900a1b4a991524fe"
   end
 
   livecheck do
-    url :stable
+    url "https://github.com/trvon/yams/releases"
     regex(/^v?(\d+(?:\.\d+)+)$/i)
   end
 
   def install
-    ENV.cxx20
-
-    # Set OpenSSL path for macOS
-    if OS.mac?
-      ENV["OPENSSL_ROOT_DIR"] = Formula["openssl@3"].opt_prefix
-    end
-
-    system "cmake", "-S", ".", "-B", "build",
-                    "-DCMAKE_BUILD_TYPE=Release",
-                    "-DYAMS_BUILD_PROFILE=release",
-                    "-DYAMS_BUILD_DOCS=OFF",
-                    "-DYAMS_BUILD_TESTS=OFF",
-                    "-DYAMS_BUILD_MCP_SERVER=ON",
-                    "-DCMAKE_INSTALL_PREFIX=#{prefix}",
-                    *std_cmake_args
-
-    system "cmake", "--build", "build", "--parallel"
-    system "cmake", "--install", "build"
-
-    # Install shell completions if the binary supports them
-    if (bin/"yams").exist?
-      generate_completions_from_executable(bin/"yams", "completion")
-    end
+    # Pre-built binaries are in usr/local/
+    bin.install Dir["usr/local/bin/*"]
+    include.install Dir["usr/local/include/*"] if Dir.exist?("usr/local/include")
+    lib.install Dir["usr/local/lib/*"] if Dir.exist?("usr/local/lib")
   end
 
   def caveats
