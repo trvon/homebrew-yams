@@ -4,13 +4,11 @@ class Yams < Formula
   version "0.7.7"
   license "GPL-3.0-or-later"
 
-  on_arm do
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-#{version}-macos-arm64.zip"
+  if Hardware::CPU.arm?
+    url "https://github.com/trvon/yams/releases/download/v0.7.7/yams-0.7.7-macos-arm64.zip"
     sha256 "98bebc3c528e5bd7b72a57adec53134f7083fc3a2aab99ee0940b05a80236076"
-  end
-
-  on_intel do
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-#{version}-macos-x86_64.zip"
+  else
+    url "https://github.com/trvon/yams/releases/download/v0.7.7/yams-0.7.7-macos-x86_64.zip"
     sha256 "28436124264030c3ee1d997b72afaa19104f594dc461a2b5900a1b4a991524fe"
   end
 
@@ -20,25 +18,15 @@ class Yams < Formula
   end
 
   def install
-    # Pre-built binaries are extracted to usr/local/
-    # Copy binaries
-    (buildpath/"usr/local/bin").glob("*").each do |f|
-      bin.install f
-    end
+    # Homebrew strips the 'usr' prefix from archives
+    # So files are at local/bin, local/include, local/lib
+    bin.install Dir["local/bin/*"]
     
-    # Copy includes if present
-    if (buildpath/"usr/local/include").exist?
-      (buildpath/"usr/local/include").glob("*").each do |f|
-        include.install f
-      end
-    end
+    # Skip spdlog to avoid conflicts with homebrew's spdlog
+    (buildpath/"local/include/spdlog").rmtree if (buildpath/"local/include/spdlog").exist?
     
-    # Copy libraries if present
-    if (buildpath/"usr/local/lib").exist?
-      (buildpath/"usr/local/lib").glob("*").each do |f|
-        lib.install f
-      end
-    end
+    include.install Dir["local/include/*"] if Dir.exist?("local/include")
+    lib.install Dir["local/lib/*"] if Dir.exist?("local/lib")
   end
 
   def caveats
@@ -58,10 +46,10 @@ class Yams < Formula
   test do
     # Test that the binary was installed and can show version
     assert_match version.to_s, shell_output("#{bin}/yams --version")
-    
+
     # Test basic functionality - init in a temp directory
-    system "#{bin}/yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
-    assert_predicate testpath/"yams-test/yams.db", :exist?
-    assert_predicate testpath/".config/yams/config.toml", :exist?
+    system bin/"yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
+    assert_path_exists testpath/"yams-test/yams.db"
+    assert_path_exists testpath/".config/yams/config.toml"
   end
 end
