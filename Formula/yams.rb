@@ -1,15 +1,15 @@
 class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
-  version "0.7.7"
-  license "GPL-3.0-or-later"
+  version "0.7.8"
+  license "MIT"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/v0.7.7/yams-0.7.7-macos-arm64.zip"
-    sha256 "98bebc3c528e5bd7b72a57adec53134f7083fc3a2aab99ee0940b05a80236076"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-#{version}-macos-arm64.zip"
+    sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
   else
-    url "https://github.com/trvon/yams/releases/download/v0.7.7/yams-0.7.7-macos-x86_64.zip"
-    sha256 "28436124264030c3ee1d997b72afaa19104f594dc461a2b5900a1b4a991524fe"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-#{version}-macos-x86_64.zip"
+    sha256 "0019dfc4b32d63c1392aa264aed2253c1e0c2fb09216f8e2cc269bbfb8bb49b5"
   end
 
   livecheck do
@@ -58,12 +58,9 @@ class Yams < Formula
   end
 
   test do
-    # Test that the binary was installed and can show version
     assert_match version.to_s, shell_output("#{bin}/yams --version")
-
-    # Test basic functionality - init in a temp directory
-    system bin/"yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
-    assert_path_exists testpath/"yams-test/yams.db"
-    assert_path_exists testpath/".config/yams/config.toml"
+    system "#{bin}/yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
+    assert_predicate testpath/"yams-test/yams.db", :exist?
+    assert_predicate testpath/".config/yams/config.toml", :exist?
   end
 end
