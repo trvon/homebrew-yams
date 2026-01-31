@@ -1,4 +1,4 @@
-class YamsATNightly < Formula
+class YamsNightly < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
   version "nightly-20251203-d2a2196"
@@ -15,14 +15,26 @@ class YamsATNightly < Formula
   conflicts_with "yams", because: "both install the same binaries"
 
   def install
-    # Homebrew strips the 'usr' prefix from archives
-    bin.install Dir["local/bin/*"]
-    
+    root = if Dir.exist?("local/bin")
+      Pathname("local")
+    elsif Dir.exist?("usr/local/bin")
+      Pathname("usr/local")
+    elsif Dir.exist?("bin")
+      Pathname(".")
+    else
+      odie "Could not locate install tree (expected local/bin, usr/local/bin, or bin)"
+    end
+
+    bin.install Dir[(root/"bin/*").to_s]
+
     # Skip spdlog to avoid conflicts
-    (buildpath/"local/include/spdlog").rmtree if (buildpath/"local/include/spdlog").exist?
-    
-    include.install Dir["local/include/*"] if Dir.exist?("local/include")
-    lib.install Dir["local/lib/*"] if Dir.exist?("local/lib")
+    (root/"include/spdlog").rmtree if (root/"include/spdlog").exist?
+
+    include.install Dir[(root/"include/*").to_s] if (root/"include").exist?
+    lib.install Dir[(root/"lib/*").to_s] if (root/"lib").exist?
+
+    # Runtime assets (schemas, etc.)
+    share.install Dir[(root/"share/*").to_s] if (root/"share").exist?
   end
 
   service do
@@ -44,7 +56,10 @@ class YamsATNightly < Formula
         yams init .
 
       To start the YAMS daemon as a service:
-        brew services start yams@nightly
+        brew services start yams-nightly
+
+      Or (via tap alias):
+        brew services start trvon/yams/yams@nightly
 
       Documentation: https://yamsmemory.ai
     EOS
