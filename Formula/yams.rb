@@ -18,6 +18,8 @@ class Yams < Formula
   end
 
   def install
+    # Homebrew may stage archives either directly into buildpath (e.g. opt/homebrew/bin)
+    # or under an extra top-level directory. Be tolerant by searching for the yams binary.
     root = if Dir.exist?("opt/homebrew/bin")
       Pathname("opt/homebrew")
     elsif Dir.exist?("local/bin")
@@ -27,7 +29,12 @@ class Yams < Formula
     elsif Dir.exist?("bin")
       Pathname(".")
     else
-      odie "Could not locate install tree (expected opt/homebrew/bin, local/bin, usr/local/bin, or bin)"
+      yams_exe = Dir["**/bin/yams"].first
+      if yams_exe
+        Pathname(yams_exe).dirname.parent
+      else
+        odie "Could not locate install tree (expected opt/homebrew/bin, local/bin, usr/local/bin, bin, or a directory containing bin/yams)"
+      end
     end
 
     bin.install Dir[(root/"bin/*").to_s]
