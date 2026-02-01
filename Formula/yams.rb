@@ -18,14 +18,16 @@ class Yams < Formula
   end
 
   def install
-    root = if Dir.exist?("local/bin")
+    root = if Dir.exist?("opt/homebrew/bin")
+      Pathname("opt/homebrew")
+    elsif Dir.exist?("local/bin")
       Pathname("local")
     elsif Dir.exist?("usr/local/bin")
       Pathname("usr/local")
     elsif Dir.exist?("bin")
       Pathname(".")
     else
-      odie "Could not locate install tree (expected local/bin, usr/local/bin, or bin)"
+      odie "Could not locate install tree (expected opt/homebrew/bin, local/bin, usr/local/bin, or bin)"
     end
 
     bin.install Dir[(root/"bin/*").to_s]
