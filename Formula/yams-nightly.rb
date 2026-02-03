@@ -1,18 +1,20 @@
 class YamsNightly < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
-  version "nightly-20251203-d2a2196"
+  version "nightly-20260203-2a14a75a"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/nightly-20251203-d2a2196/yams-nightly-20251203-069c911-macos-arm64.zip"
-    sha256 "507ff57b8139daf08ebbf2e36ebb024c1a3819e7c8375b30ce922c02374fa35a"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260203-2a14a75a/yams-nightly-20260203-2a14a75a-macos-arm64.zip"
+    sha256 "b54854e74e36b5744422e9bdaa4f9d3a9dcceebf5eda0ed52087a77a55913b8e"
   else
-    url "https://github.com/trvon/yams/releases/download/nightly-20251203-d2a2196/yams-nightly-20251203-069c911-macos-x86_64.zip"
-    sha256 "8e821080dd098d149f06c1d7b3e67a17a4f6f1866815211aac706b36f55e458c"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260203-2a14a75a/yams-nightly-20260203-2a14a75a-macos-x86_64.zip"
+    sha256 "a80fd973a26520bb90c9bcaa62b822e271d875ae4806843bf9085e55c878b403"
   end
 
   conflicts_with "yams", because: "both install the same binaries"
+
+  depends_on "onnxruntime"
 
   def install
     # Homebrew may stage archives either directly into buildpath (e.g. opt/homebrew/bin)
@@ -40,10 +42,29 @@ class YamsNightly < Formula
     (root/"include/spdlog").rmtree if (root/"include/spdlog").exist?
 
     include.install Dir[(root/"include/*").to_s] if (root/"include").exist?
-    lib.install Dir[(root/"lib/*").to_s] if (root/"lib").exist?
+
+    # Install lib contents preserving directory structure (plugins live in lib/yams/plugins/)
+    if (root/"lib").exist?
+      lib.install Dir[(root/"lib/*.{a,dylib,so}").to_s]
+      (lib/"pkgconfig").install Dir[(root/"lib/pkgconfig/*").to_s] if (root/"lib/pkgconfig").exist?
+      if (root/"lib/yams/plugins").exist?
+        (lib/"yams/plugins").mkpath
+        (lib/"yams/plugins").install Dir[(root/"lib/yams/plugins/*").to_s]
+      end
+    end
+
+    # Remove bundled onnxruntime — Homebrew manages this dependency
+    rm_f Dir[lib/"libonnxruntime*"]
 
     # Runtime assets (schemas, etc.)
     share.install Dir[(root/"share/*").to_s] if (root/"share").exist?
+  end
+
+  def post_install
+    # Fix plugin rpaths to find Homebrew-managed onnxruntime
+    Dir[lib/"yams/plugins/*.dylib"].each do |plugin|
+      MachO::Tools.add_rpath(plugin, HOMEBREW_PREFIX/"lib") rescue nil
+    end
   end
 
   service do
@@ -58,7 +79,7 @@ class YamsNightly < Formula
     <<~EOS
       You have installed the nightly build of YAMS.
       This version is updated frequently and may be unstable.
-      
+
       For stable releases, use: brew install trvon/yams/yams
 
       Initialize YAMS storage:
