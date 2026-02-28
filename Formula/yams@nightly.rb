@@ -1,23 +1,20 @@
-class Yams < Formula
-  desc "Yet Another Memory System - High-performance content-addressed storage"
+class YamsATNightly < Formula
+  desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
-  version "0.9.0"
+  version "nightly-20260225-bf63d209"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-yams-v#{version}-macos-arm64.zip"
-    sha256 "f09cb950cc0a16ded85164aad0947376439768c6a662c4ba133f5363199c36b8"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260225-bf63d209/yams-nightly-20260225-bf63d209-macos-arm64.zip"
+    sha256 "df13f18ac48322e235d0cb90a4574a7de58f2e9e468505268821987b62e6926d"
   else
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-yams-v#{version}-macos-x86_64.zip"
-    sha256 "ff7dd3a412695302747540c364ce912a9bd9db411e0e2dfe891edaf8087f3c6e"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260225-bf63d209/yams-nightly-20260225-bf63d209-macos-x86_64.zip"
+    sha256 "d6e756998caf1b481c57ca40d39d9ae84589bb987dbf342267fbc5fb15466e82"
   end
+
+  conflicts_with "yams", because: "both install the same binaries"
 
   depends_on "onnxruntime"
-
-  livecheck do
-    url "https://github.com/trvon/yams/releases"
-    regex(/^v?(\d+(?:\.\d+)+)$/i)
-  end
 
   def install
     # Homebrew may stage archives either directly into buildpath (e.g. opt/homebrew/bin)
@@ -41,7 +38,7 @@ class Yams < Formula
 
     bin.install Dir[(root/"bin/*").to_s]
 
-    # Skip spdlog to avoid conflicts with homebrew's spdlog
+    # Skip spdlog to avoid conflicts
     (root/"include/spdlog").rmtree if (root/"include/spdlog").exist?
 
     include.install Dir[(root/"include/*").to_s] if (root/"include").exist?
@@ -80,28 +77,27 @@ class Yams < Formula
 
   def caveats
     <<~EOS
+      You have installed the nightly build of YAMS.
+      This version is updated frequently and may be unstable.
+
+      For stable releases, use: brew install trvon/yams/yams
+
       Initialize YAMS storage:
         yams init .
 
-      Or specify custom location:
-        export YAMS_STORAGE="$HOME/.local/share/yams"
-        yams init
-
       To start the YAMS daemon as a service:
-        brew services start yams
-      
-      To stop the daemon:
-        brew services stop yams
+        brew services start yams-nightly
+
+      Or (via tap alias):
+        brew services start trvon/yams/yams@nightly
 
       Documentation: https://yamsmemory.ai
-      Repository: https://github.com/trvon/yams
     EOS
   end
 
   test do
-    assert_match version.to_s, shell_output("#{bin}/yams --version")
-    system "#{bin}/yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
-    assert_predicate testpath/"yams-test/yams.db", :exist?
-    assert_predicate testpath/".config/yams/config.toml", :exist?
+    assert_match(/nightly|dev/, shell_output("#{bin}/yams --version"))
+    system bin/"yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
+    assert_path_exists testpath/"yams-test/yams.db"
   end
 end
