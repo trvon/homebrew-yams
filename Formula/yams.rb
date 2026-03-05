@@ -6,10 +6,10 @@ class Yams < Formula
 
   if Hardware::CPU.arm?
     url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.10.0-macos-arm64.zip"
-    sha256 "bbd838f3fcc87b2d293199e81a8e5a6896000a626ffb555e1123d432b25d0167"
+    sha256 "31a7786211e84858ce2567d5909ff715a97bc3054a4bca26d1691e579f0df8bd"
   else
     url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.10.0-macos-x86_64.zip"
-    sha256 "c331ed6bf685fd2915df0be1097481c7b5ec6a2a2ad13ef4f39754d204cf4730"
+    sha256 "65b37f5b1653a35282606f08e5bbc392dcbf42dbe9f7c2dd228ab4cde17c38be"
   end
 
   depends_on "onnxruntime"
