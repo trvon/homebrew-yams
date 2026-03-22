@@ -1,15 +1,15 @@
 class YamsATNightly < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
-  version "nightly-20260321-b0c8d96e"
+  version "nightly-20260322-7a55178e"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/nightly-20260321-b0c8d96e/yams-nightly-20260321-b0c8d96e-macos-arm64.zip"
-    sha256 "76b6b8114191e22e3526588c81964eef65cb69338b0fa6e469ab93b761cd2f1b"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260322-7a55178e/yams-nightly-20260322-7a55178e-macos-arm64.zip"
+    sha256 "4d4a7246e2e1d1cf7c50f7c547217b93ac70c359103bbcd1023bcef7c537b52a"
   else
-    url "https://github.com/trvon/yams/releases/download/nightly-20260321-b0c8d96e/yams-nightly-20260321-b0c8d96e-macos-x86_64.zip"
-    sha256 "0463b79907cb0109fecc65cd660bab04115284980bddd1a5b27c19b53c3c8fb7"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260322-7a55178e/yams-nightly-20260322-7a55178e-macos-x86_64.zip"
+    sha256 "8c311040e4db58aa13d89ced91355a71fa9ba9e671cc34fecfaae5c7a1140a52"
   end
 
   conflicts_with "yams", because: "both install the same binaries"
@@ -66,6 +66,13 @@ class YamsATNightly < Formula
 
     expected_rpath = (HOMEBREW_PREFIX/"lib").to_s
 
+    current_rpaths = lambda do |binary|
+      Utils.safe_popen_read("otool", "-l", binary.to_s)
+           .scan(/^\s*path\s+([^\s]+)\s+\(offset/m)
+           .flatten
+           .uniq
+    end
+
     Dir[plugin_dir/"*.dylib"].sort.each do |plugin_path|
       plugin = Pathname(plugin_path)
 
@@ -75,13 +82,13 @@ class YamsATNightly < Formula
         mode = plugin.stat.mode & 0o777
         plugin.chmod(mode | 0o200)
 
-        unless Utils.safe_popen_read("otool", "-l", plugin.to_s).include?(expected_rpath)
+        unless current_rpaths.call(plugin).include?(expected_rpath)
           unless system "install_name_tool", "-add_rpath", expected_rpath, plugin.to_s
             odie "Failed to add rpath '#{expected_rpath}' to #{plugin}"
           end
         end
 
-        unless Utils.safe_popen_read("otool", "-l", plugin.to_s).include?(expected_rpath)
+        unless current_rpaths.call(plugin).include?(expected_rpath)
           odie "RPATH verification failed for #{plugin}; expected '#{expected_rpath}'"
         end
       rescue StandardError => e
