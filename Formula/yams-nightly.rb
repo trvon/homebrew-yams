@@ -1,15 +1,15 @@
 class YamsNightly < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
-  version "nightly-20260413-4c9ce1e1"
+  version "nightly-20260415-422d8570"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/nightly-20260413-4c9ce1e1/yams-nightly-20260413-4c9ce1e1-macos-arm64.zip"
-    sha256 "be6d1ce58f2e0be36933ed239965291af74dc793fd0d021b797c177b617b6f6c"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260415-422d8570/yams-nightly-20260415-422d8570-macos-arm64.zip"
+    sha256 "f80e4d80d097d5a21704def2e891ea09c96a19a415d38f6663bcdd1c547fa766"
   else
-    url "https://github.com/trvon/yams/releases/download/nightly-20260413-4c9ce1e1/yams-nightly-20260413-4c9ce1e1-macos-x86_64.zip"
-    sha256 "16f6244767fd788dae670938a090395cbc3cdc019203429d03d1042a102e2f68"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260415-422d8570/yams-nightly-20260415-422d8570-macos-x86_64.zip"
+    sha256 "1ac0cb69c76c1f1d589aa747a3ff6f17aefc3b7bb2b476d5667074da2bf8a98d"
   end
 
   conflicts_with "yams", because: "both install the same binaries"
@@ -58,10 +58,12 @@ class YamsNightly < Formula
 
     # Runtime assets (schemas, etc.)
     share.install Dir[(root/"share/*").to_s] if (root/"share").exist?
+
+    generate_completions_from_executable(bin/"yams", "completion") if (bin/"yams").exist?
   end
 
   service do
-    run [opt_bin/"yams-daemon"]
+    run [opt_bin/"yams-daemon", "--foreground"]
     keep_alive true
     log_path var/"log/yams-daemon.log"
     error_log_path var/"log/yams-daemon.log"
@@ -80,6 +82,28 @@ class YamsNightly < Formula
 
       To start the YAMS daemon as a service:
         brew services start yams-nightly
+
+      Homebrew installs completion files for bash, zsh, and fish.
+      If completion is not active in your current shell yet, start a new shell or use:
+        source <(yams completion bash)
+        autoload -U compinit && compinit && source <(yams completion zsh)
+        mkdir -p ~/.config/fish/completions && yams completion fish > ~/.config/fish/completions/yams.fish
+
+      Zsh persistent setup:
+        mkdir -p ~/.local/share/zsh/site-functions
+        yams completion zsh > ~/.local/share/zsh/site-functions/_yams
+        # Ensure ~/.local/share/zsh/site-functions is on fpath before compinit
+        # then run: autoload -U compinit && compinit
+
+      Nested subcommands are included, e.g.:
+        yams config embeddings <TAB>
+        yams plugin trust <TAB>
+        yams plugins trust <TAB>
+        yams daemon start --log-level <TAB>
+        yams config search path-tree enable --mode <TAB>
+
+      PowerShell completion is available manually:
+        pwsh -NoLogo -NoProfile -Command 'Invoke-Expression (yams completion powershell | Out-String)'
 
       Documentation: https://yamsmemory.ai
     EOS
