@@ -38,15 +38,10 @@ class YamsNightly < Formula
 
     bin.install Dir[(root/"bin/*").to_s]
 
-    # Skip spdlog to avoid conflicts
-    (root/"include/spdlog").rmtree if (root/"include/spdlog").exist?
-
-    include.install Dir[(root/"include/*").to_s] if (root/"include").exist?
-
-    # Install lib contents preserving directory structure (plugins live in lib/yams/plugins/)
+    # Runtime-only Homebrew package: skip headers, pkg-config metadata, and static archives.
+    # Those developer artifacts dominate keg size and are not needed for normal CLI/daemon use.
     if (root/"lib").exist?
-      lib.install Dir[(root/"lib/*.{a,dylib,so}").to_s]
-      (lib/"pkgconfig").install Dir[(root/"lib/pkgconfig/*").to_s] if (root/"lib/pkgconfig").exist?
+      lib.install Dir[(root/"lib/*.{dylib,so}").to_s]
       if (root/"lib/yams/plugins").exist?
         (lib/"yams/plugins").mkpath
         (lib/"yams/plugins").install Dir[(root/"lib/yams/plugins/*").to_s]
@@ -61,7 +56,7 @@ class YamsNightly < Formula
   end
 
   service do
-    run [opt_bin/"yams-daemon"]
+    run [opt_bin/"yams-daemon", "--foreground"]
     keep_alive true
     log_path var/"log/yams-daemon.log"
     error_log_path var/"log/yams-daemon.log"
@@ -86,8 +81,10 @@ class YamsNightly < Formula
   end
 
   test do
+    ENV["HOME"] = testpath
     assert_match(/nightly|dev/, shell_output("#{bin}/yams --version"))
-    system bin/"yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
-    assert_path_exists testpath/"yams-test/yams.db"
+    system bin/"yams", "init", "--non-interactive"
+    assert_path_exists testpath/".local/share/yams/yams.db"
+    assert_path_exists testpath/".config/yams/config.toml"
   end
 end

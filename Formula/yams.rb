@@ -41,15 +41,10 @@ class Yams < Formula
 
     bin.install Dir[(root/"bin/*").to_s]
 
-    # Skip spdlog to avoid conflicts with homebrew's spdlog
-    (root/"include/spdlog").rmtree if (root/"include/spdlog").exist?
-
-    include.install Dir[(root/"include/*").to_s] if (root/"include").exist?
-
-    # Install lib contents preserving directory structure (plugins live in lib/yams/plugins/)
+    # Runtime-only Homebrew package: skip headers, pkg-config metadata, and static archives.
+    # Those developer artifacts dominate keg size and are not needed for normal CLI/daemon use.
     if (root/"lib").exist?
-      lib.install Dir[(root/"lib/*.{a,dylib,so}").to_s]
-      (lib/"pkgconfig").install Dir[(root/"lib/pkgconfig/*").to_s] if (root/"lib/pkgconfig").exist?
+      lib.install Dir[(root/"lib/*.{dylib,so}").to_s]
       if (root/"lib/yams/plugins").exist?
         (lib/"yams/plugins").mkpath
         (lib/"yams/plugins").install Dir[(root/"lib/yams/plugins/*").to_s]
@@ -64,7 +59,7 @@ class Yams < Formula
   end
 
   service do
-    run [opt_bin/"yams-daemon"]
+    run [opt_bin/"yams-daemon", "--foreground"]
     keep_alive true
     log_path var/"log/yams-daemon.log"
     error_log_path var/"log/yams-daemon.log"
@@ -92,9 +87,10 @@ class Yams < Formula
   end
 
   test do
+    ENV["HOME"] = testpath
     assert_match version.to_s, shell_output("#{bin}/yams --version")
-    system "#{bin}/yams", "init", "--non-interactive", "--storage", testpath/"yams-test"
-    assert_predicate testpath/"yams-test/yams.db", :exist?
+    system "#{bin}/yams", "init", "--non-interactive"
+    assert_predicate testpath/".local/share/yams/yams.db", :exist?
     assert_predicate testpath/".config/yams/config.toml", :exist?
   end
 end
