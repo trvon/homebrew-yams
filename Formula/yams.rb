@@ -1,15 +1,15 @@
 class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
-  version "0.12.1"
+  version "0.13.0"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.12.1-macos-arm64.zip"
-    sha256 "31df9053d954a1b83f9145eea5f0ab6fc36b206ff8a5e0ac3545c840faa34f0b"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.13.0-macos-arm64.zip"
+    sha256 "85fe4923c39ee3f5bcdfa1a57191e56ddd1912b3eb299666241379062876d4c1"
   else
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.12.1-macos-x86_64.zip"
-    sha256 "55e53da189cdec3aafa1de49bc0260f160abe846649e92390cda3d2010dea5a0"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.13.0-macos-x86_64.zip"
+    sha256 "c8b888ec501fe5b19aeb8a91fdfb2dab92688aba14e7bc416182eaccbd305839"
   end
 
   depends_on "onnxruntime"
@@ -56,6 +56,8 @@ class Yams < Formula
 
     # Runtime assets (schemas, etc.)
     share.install Dir[(root/"share/*").to_s] if (root/"share").exist?
+
+    generate_completions_from_executable(bin/"yams", "completion") if (bin/"yams").exist?
   end
 
   service do
@@ -77,9 +79,31 @@ class Yams < Formula
 
       To start the YAMS daemon as a service:
         brew services start yams
-      
+
       To stop the daemon:
         brew services stop yams
+
+      Homebrew installs completion files for bash, zsh, and fish.
+      If completion is not active in your current shell yet, start a new shell or use:
+        source <(yams completion bash)
+        autoload -U compinit && compinit && source <(yams completion zsh)
+        mkdir -p ~/.config/fish/completions && yams completion fish > ~/.config/fish/completions/yams.fish
+
+      Zsh persistent setup:
+        mkdir -p ~/.local/share/zsh/site-functions
+        yams completion zsh > ~/.local/share/zsh/site-functions/_yams
+        # Ensure ~/.local/share/zsh/site-functions is on fpath before compinit
+        # then run: autoload -U compinit && compinit
+
+      Nested subcommands are included, e.g.:
+        yams config embeddings <TAB>
+        yams plugin trust <TAB>
+        yams plugins trust <TAB>
+        yams daemon start --log-level <TAB>
+        yams config search path-tree enable --mode <TAB>
+
+      PowerShell completion is available manually:
+        pwsh -NoLogo -NoProfile -Command 'Invoke-Expression (yams completion powershell | Out-String)'
 
       Documentation: https://yamsmemory.ai
       Repository: https://github.com/trvon/yams
