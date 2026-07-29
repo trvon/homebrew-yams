@@ -1,15 +1,15 @@
 class YamsNightly < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
-  version "nightly-20260726-6e847238"
+  version "nightly-20260729-7a86afeb"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/nightly-20260726-6e847238/yams-nightly-20260726-6e847238-macos-arm64.zip"
-    sha256 "d369e96732cf2d61e15a106ce8f50d52f64b9ff758188b8d9d338db93eccab77"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260729-7a86afeb/yams-nightly-20260729-7a86afeb-macos-arm64.zip"
+    sha256 "5ecec59ab4c855f438441d11f65f0897542799e74ed4893eaaaca0d65542240c"
   else
-    url "https://github.com/trvon/yams/releases/download/nightly-20260726-6e847238/yams-nightly-20260726-6e847238-macos-x86_64.zip"
-    sha256 "1aba626ba2fbb0f85367a405f90ec41d1dc61a069e10e5320d7271466ec374cf"
+    url "https://github.com/trvon/yams/releases/download/nightly-20260729-7a86afeb/yams-nightly-20260729-7a86afeb-macos-x86_64.zip"
+    sha256 "9215d7e64c726f2d3fe8d407d30972f00f3c403d628ffc0c20b454328275436c"
   end
 
   conflicts_with "yams", because: "both install the same binaries"
