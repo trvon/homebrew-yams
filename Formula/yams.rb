@@ -1,15 +1,15 @@
 class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
-  version "0.20.3"
+  version "0.20.5"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.20.3-macos-arm64.zip"
-    sha256 "a3107cf3a4a47fc3a1a0e633acf449420269cf9b2710ad10d5c197121b5d80e6"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.20.5-macos-arm64.zip"
+    sha256 "bdbea12a8794a8f0927dc09d147a829c90aab571e2d68a1fbe79b966af44ecc7"
   else
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.20.3-macos-x86_64.zip"
-    sha256 "9cbc5789897bed09c87c478dbbf7135125c572d85deb262e91a199d9a706a4e0"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.20.5-macos-x86_64.zip"
+    sha256 "ae50246d0b68b857f489c89bc22f993600afe221eddf64b07caa891ee01204b7"
   end
 
   depends_on "onnxruntime"
@@ -45,14 +45,21 @@ class Yams < Formula
     # Those developer artifacts dominate keg size and are not needed for normal CLI/daemon use.
     if (root/"lib").exist?
       lib.install Dir[(root/"lib/*.{dylib,so}").to_s]
+      # Private runtime libraries (ONNX resource registry) live in lib/yams and are
+      # found through @loader_path / @executable_path RUNPATHs.
+      (lib/"yams").install Dir[(root/"lib/yams/*.{dylib,so}").to_s]
       if (root/"lib/yams/plugins").exist?
         (lib/"yams/plugins").mkpath
         (lib/"yams/plugins").install Dir[(root/"lib/yams/plugins/*").to_s]
       end
     end
 
-    # Remove bundled onnxruntime — Homebrew manages this dependency
+    # The formula depends on Homebrew's onnxruntime, which the plugins prefer over
+    # the private fallback copy the archive carries in lib/yams/onnxruntime; do not
+    # install that copy (or stray copies from older archive layouts).
     rm_f Dir[lib/"libonnxruntime*"]
+    rm_f Dir[lib/"yams/libonnxruntime*"]
+    rm_rf lib/"yams/onnxruntime"
 
     # Runtime assets (schemas, etc.)
     share.install Dir[(root/"share/*").to_s] if (root/"share").exist?
