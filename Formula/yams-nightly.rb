@@ -1,15 +1,15 @@
 class YamsNightly < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage (Nightly)"
   homepage "https://github.com/trvon/yams"
-  version "nightly-20260908-34b61b22"
+  version "nightly-20261003-8dd0ef1c"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/nightly-20260908-34b61b22/yams-nightly-20260908-34b61b22-macos-arm64.zip"
-    sha256 "0781f7a8f46888c0594a213800f1ed89cacd452ba19ccf01521762e04a21da6a"
+    url "https://github.com/trvon/yams/releases/download/experimental-nightly-20261003-8dd0ef1c337a3dcb1ef8e937d0e81cf5691fb620/yams-nightly-20261003-8dd0ef1c-macos-arm64.zip"
+    sha256 "203563020b31df77353c0244b2a2dfd0dd1eed59e3d55a2189f7638e7ce70811"
   else
-    url "https://github.com/trvon/yams/releases/download/nightly-20260908-34b61b22/yams-nightly-20260908-34b61b22-macos-x86_64.zip"
-    sha256 "207b46350dd80d4a09da9238787d1e59b9b20aba8095239d932a571f2795c9ae"
+    url "https://github.com/trvon/yams/releases/download/experimental-nightly-20261003-8dd0ef1c337a3dcb1ef8e937d0e81cf5691fb620/yams-nightly-20261003-8dd0ef1c-macos-x86_64.zip"
+    sha256 "c7429f450dd03c500fa059d517a108f1b719f4b13a887d880b588d49199a7366"
   end
 
   conflicts_with "yams", because: "both install the same binaries"
@@ -42,14 +42,21 @@ class YamsNightly < Formula
     # Those developer artifacts dominate keg size and are not needed for normal CLI/daemon use.
     if (root/"lib").exist?
       lib.install Dir[(root/"lib/*.{dylib,so}").to_s]
+      # Private runtime libraries (ONNX resource registry) live in lib/yams and are
+      # found through @loader_path / @executable_path RUNPATHs.
+      (lib/"yams").install Dir[(root/"lib/yams/*.{dylib,so}").to_s]
       if (root/"lib/yams/plugins").exist?
         (lib/"yams/plugins").mkpath
         (lib/"yams/plugins").install Dir[(root/"lib/yams/plugins/*").to_s]
       end
     end
 
-    # Remove bundled onnxruntime — Homebrew manages this dependency
+    # The formula depends on Homebrew's onnxruntime, which the plugins prefer over
+    # the private fallback copy the archive carries in lib/yams/onnxruntime; do not
+    # install that copy (or stray copies from older archive layouts).
     rm_f Dir[lib/"libonnxruntime*"]
+    rm_f Dir[lib/"yams/libonnxruntime*"]
+    rm_rf lib/"yams/onnxruntime"
 
     # Runtime assets (schemas, etc.)
     share.install Dir[(root/"share/*").to_s] if (root/"share").exist?
