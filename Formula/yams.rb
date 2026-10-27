@@ -1,15 +1,15 @@
 class Yams < Formula
   desc "Yet Another Memory System - High-performance content-addressed storage"
   homepage "https://github.com/trvon/yams"
-  version "0.20.5"
+  version "0.21.1"
   license "GPL-3.0-or-later"
 
   if Hardware::CPU.arm?
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.20.5-macos-arm64.zip"
-    sha256 "bdbea12a8794a8f0927dc09d147a829c90aab571e2d68a1fbe79b966af44ecc7"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.21.1-macos-arm64.zip"
+    sha256 "13c36f72bb9b547185c7f7e43a09eb2d614935c57c80f24f10aa1e4d73dd7761"
   else
-    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.20.5-macos-x86_64.zip"
-    sha256 "ae50246d0b68b857f489c89bc22f993600afe221eddf64b07caa891ee01204b7"
+    url "https://github.com/trvon/yams/releases/download/v#{version}/yams-0.21.1-macos-x86_64.zip"
+    sha256 "94316719910920d3f6e1ba0f03169c041b6eda61f380b8b72e720bcc84cc5b5f"
   end
 
   depends_on "onnxruntime"
